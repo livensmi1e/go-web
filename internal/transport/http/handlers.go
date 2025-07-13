@@ -8,6 +8,7 @@ import (
 
 type ApiHandler struct {
 	store ports.Store
+	cache ports.Cache
 }
 
 func newApiHandler(opts ...func(h *ApiHandler)) *ApiHandler {

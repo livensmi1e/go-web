@@ -3,7 +3,6 @@ package store
 import (
 	"database/sql"
 	"go-web/internal/core/ports"
-	"go-web/internal/platform"
 	"log/slog"
 
 	_ "github.com/lib/pq"
@@ -13,8 +12,8 @@ type pgStore struct {
 	db *sql.DB
 }
 
-func NewPg(cfg *platform.Config) ports.Store {
-	db, err := sql.Open("postgres", cfg.StoreAddr())
+func NewPg(addr string) ports.Store {
+	db, err := sql.Open("postgres", addr)
 	if err != nil {
 		slog.Error("failed open db connection", "error=", err.Error())
 		return nil

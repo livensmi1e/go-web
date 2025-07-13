@@ -12,6 +12,7 @@ type Config struct {
 	Env           string
 	Debug         bool
 	MonitorEnable bool
+	CacheEnable   bool
 }
 
 func NewConfig() *Config {
@@ -23,6 +24,7 @@ func NewConfig() *Config {
 		Env:           getEnvStr("ENV", "dev"),
 		Debug:         getEnvBool("DEBUG", true),
 		MonitorEnable: getEnvBool("MONITOR_ENABLE", true),
+		CacheEnable:   getEnvBool("CACHE_ENABLE", true),
 	}
 	return cfg
 }
@@ -36,10 +38,16 @@ func (c *Config) MonitorServerAddr() string {
 }
 
 func (c *Config) StoreAddr() string {
-	host := getEnvStr("POSTGRES_HOST", "localhost")
-	port := getEnvStr("POSTGRES_PORT", "5432")
-	user := getEnvStr("POSTGRES_USER", "postgres")
-	password := getEnvStr("POSTGRES_PASSWORD", "postgres")
-	db := getEnvStr("POSTGRES_DB", "postgres")
+	host := getEnvStr("STORE_HOST", "localhost")
+	port := getEnvStr("STORE_PORT", "5432")
+	user := getEnvStr("STORE_USER", "postgres")
+	password := getEnvStr("STORE_PASSWORD", "postgres")
+	db := getEnvStr("STORE_DB", "postgres")
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, db)
+}
+
+func (c *Config) CacheAddr() string {
+	host := getEnvStr("CACHE_HOST", "localhost")
+	port := getEnvStr("CACHE_PORT", "11211")
+	return fmt.Sprintf("%s:%s", host, port)
 }
