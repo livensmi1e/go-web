@@ -25,7 +25,7 @@ func NewConfig() *Config {
 	return cfg
 }
 
-func (c *Config) HTTPServerAddr() string {
+func (c *Config) HttpServerAddr() string {
 	return fmt.Sprintf("%s:%s", c.HttpHost, c.HttpPort)
 }
 
