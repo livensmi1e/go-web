@@ -5,6 +5,8 @@ import (
 	"go-web/internal/core/ports"
 	"go-web/internal/platform"
 	"log/slog"
+
+	_ "github.com/lib/pq"
 )
 
 type pgStore struct {

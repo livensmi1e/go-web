@@ -9,18 +9,20 @@ type Config struct {
 	MonitorHost string
 	MonitorPort string
 
-	Env   string
-	Debug bool
+	Env           string
+	Debug         bool
+	MonitorEnable bool
 }
 
 func NewConfig() *Config {
 	cfg := &Config{
-		HttpHost:    getEnvStr("HTTP_HOST", "localhost"),
-		HttpPort:    getEnvStr("HTTP_PORT", "8000"),
-		MonitorHost: getEnvStr("HTTP_HOST", "localhost"),
-		MonitorPort: getEnvStr("HTTP_PORT", "9000"),
-		Env:         getEnvStr("ENV", "dev"),
-		Debug:       getEnvBool("DEBUG", true),
+		HttpHost:      getEnvStr("HTTP_HOST", "localhost"),
+		HttpPort:      getEnvStr("HTTP_PORT", "8000"),
+		MonitorHost:   getEnvStr("HTTP_HOST", "localhost"),
+		MonitorPort:   getEnvStr("HTTP_PORT", "9000"),
+		Env:           getEnvStr("ENV", "dev"),
+		Debug:         getEnvBool("DEBUG", true),
+		MonitorEnable: getEnvBool("MONITOR_ENABLE", true),
 	}
 	return cfg
 }

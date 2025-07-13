@@ -37,7 +37,7 @@ func withHandler(h http.Handler) func(*http.Server) {
 	}
 }
 
-func Run(cfg *platform.Config) error {
+func RunServer(cfg *platform.Config) error {
 	mux := http.NewServeMux()
 	api := newApiHandler(func(h *ApiHandler) {
 		h.store = store.NewPg(cfg)

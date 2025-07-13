@@ -11,8 +11,17 @@ func main() {
 	logger := platform.NewLogger(cfg)
 	slog.SetDefault(logger)
 
-	slog.Info("server running...", "addr", cfg.HttpServerAddr())
-	if err := http.Run(cfg); err != nil {
-		slog.Error("server failed running: ", "error", err.Error())
+	if cfg.MonitorEnable {
+		slog.Info("monitor server running...", "addr", cfg.MonitorServerAddr())
+		go func() {
+			if err := platform.RunMonitor(cfg); err != nil {
+				slog.Error("monitor server failed running: ", "error", err.Error())
+			}
+		}()
+	}
+
+	slog.Info("http server running...", "addr", cfg.HttpServerAddr())
+	if err := http.RunServer(cfg); err != nil {
+		slog.Error("http server failed running: ", "error", err.Error())
 	}
 }
