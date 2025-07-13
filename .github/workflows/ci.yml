@@ -1,0 +1,35 @@
+name: CI
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    test-and-lint:
+        name: Test & Lint
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: stable
+
+            - name: Install dependencies
+              run: go mod download
+
+            - name: Run tests
+              run: go test ./... -v -cover
+
+            - name: golangci-lint
+              uses: golangci/golangci-lint-action@v8
+              with:
+                  version: v2.1
+
+    # build:
+
+    # deploy:
