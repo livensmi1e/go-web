@@ -3,24 +3,34 @@ package platform
 import "fmt"
 
 type Config struct {
-	Host  string
-	Port  string
+	HttpHost string
+	HttpPort string
+
+	MonitorHost string
+	MonitorPort string
+
 	Env   string
 	Debug bool
 }
 
 func NewConfig() *Config {
 	cfg := &Config{
-		Host:  getEnvStr("HOST", "localhost"),
-		Port:  getEnvStr("PORT", "8000"),
-		Env:   getEnvStr("ENV", "dev"),
-		Debug: getEnvBool("DEBUG", true),
+		HttpHost:    getEnvStr("HTTP_HOST", "localhost"),
+		HttpPort:    getEnvStr("HTTP_PORT", "8000"),
+		MonitorHost: getEnvStr("HTTP_HOST", "localhost"),
+		MonitorPort: getEnvStr("HTTP_PORT", "9000"),
+		Env:         getEnvStr("ENV", "dev"),
+		Debug:       getEnvBool("DEBUG", true),
 	}
 	return cfg
 }
 
-func (c *Config) ServerAddr() string {
-	return fmt.Sprintf("%s:%s", c.Host, c.Port)
+func (c *Config) HTTPServerAddr() string {
+	return fmt.Sprintf("%s:%s", c.HttpHost, c.HttpPort)
+}
+
+func (c *Config) MonitorServerAddr() string {
+	return fmt.Sprintf("%s:%s", c.MonitorHost, c.MonitorPort)
 }
 
 func (c *Config) StoreAddr() string {

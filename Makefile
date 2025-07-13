@@ -1,7 +1,7 @@
 .PHONY: server-dev, db-dev-up, db-dev-down, mg-up, mg-down
 
 server-dev:
-	@go run .
+	@cd ./internal/cmd/server && go run .
 
 db-dev-up:
 	@docker compose --env-file .env.development -f docker-compose.dev.yml up -d
