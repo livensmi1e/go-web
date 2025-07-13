@@ -12,6 +12,7 @@ func NewMonitor(cfg *Config) *http.Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
+		//nolint:errcheck
 		fmt.Fprintln(w, "OK")
 	})
 	mux.Handle("/metrics", promhttp.Handler())
