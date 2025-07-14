@@ -1,8 +1,8 @@
-.PHONY: server-dev infra-dev-up infra-dev-down mg-up mg-down lint
+.PHONY: install server-dev infra-dev-up infra-dev-down mg-up mg-down lint
 
 install:
-	@go mod download \
-	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.2.2 \
+	go mod download
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.2.2
 	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 server-dev:
