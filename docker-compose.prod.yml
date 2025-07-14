@@ -7,14 +7,26 @@ services:
             - POSTGRES_DB=${STORE_DB}
         volumes:
             - pg-data:/var/lib/postgresql/data
-        ports:
-            - 5432:5432
+        networks:
+            - go-web
 
-    # Remove this service if not enable cache
     cache:
         image: memcached:1.6.38-alpine
-        ports:
-            - 11211:11211
+        networks:
+            - go-web
+
+    backend:
+        image: ghcr.io/livensmi1e/go-web:latest
+        networks:
+            - go-web
+        depends_on:
+            - store
+        env_file:
+            - .env.prod
 
 volumes:
     pg-data:
+
+networks:
+    go-web:
+        driver: bridge

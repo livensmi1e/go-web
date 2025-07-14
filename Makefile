@@ -1,13 +1,18 @@
-.PHONY: server-dev, db-dev-up, db-dev-down, mg-up, mg-down
+.PHONY: server-dev infra-dev-up infra-dev-down mg-up mg-down lint
+
+install:
+	@go mod download \
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.2.2 \
+	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 server-dev:
 	@cd ./internal/cmd/server && go run .
 
-db-dev-up:
-	@docker compose --env-file .env.development -f docker-compose.dev.yml up -d
+infra-dev-up:
+	@docker compose --env-file .env.dev -f docker-compose.dev.yml up -d
 
-db-dev-down:
-	@docker compose --env-file .env.development -f docker-compose.dev.yml down -v
+infra-dev-down:
+	@docker compose --env-file .env.dev -f docker-compose.dev.yml down -v
 
 mg-up:
 	@migrate -source file://./migrations -database postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable up
@@ -17,3 +22,6 @@ mg-down:
 
 mg-reset:
 	@migrate -source file://./migrations -database postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable drop -f
+
+lint:
+	@golangci-lint run ./...
