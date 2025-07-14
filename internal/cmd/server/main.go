@@ -12,9 +12,9 @@ func main() {
 	slog.SetDefault(logger)
 
 	if cfg.MonitorEnable {
-		slog.Info("monitor server running...", "addr", cfg.MonitorServerAddr())
 		go func() {
-			if err := platform.RunMonitor(cfg); err != nil {
+			slog.Info("monitor server running...", "addr", cfg.MonitorServerAddr())
+			if err := platform.RunMonitor(cfg.MonitorServerAddr()); err != nil {
 				slog.Error("monitor server failed running: ", "error", err.Error())
 			}
 		}()

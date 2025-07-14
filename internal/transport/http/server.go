@@ -43,10 +43,13 @@ func RunServer(cfg *platform.Config) error {
 	// TODO: refine log placement
 	mux := http.NewServeMux()
 	api := newApiHandler(func(h *ApiHandler) {
-		h.store = store.NewPg(cfg.StoreAddr())
+		h.store = store.NewPgStore(cfg.StoreAddr())
+		if h.store != nil {
+			slog.Info("connected to db server on", "addr", cfg.StoreAddr())
+		}
 		if cfg.CacheEnable {
-			slog.Info("connected to cache server on", "addr", cfg.CacheAddr())
 			h.cache = cache.NewGobCache(cfg.CacheAddr())
+			slog.Info("connected to cache server on", "addr", cfg.CacheAddr())
 		}
 	})
 	api.registerRoutes(mux)

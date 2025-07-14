@@ -12,7 +12,7 @@ type pgStore struct {
 	db *sql.DB
 }
 
-func NewPg(addr string) ports.Store {
+func NewPgStore(addr string) ports.Store {
 	db, err := sql.Open("postgres", addr)
 	if err != nil {
 		slog.Error("failed open db connection", "error=", err.Error())

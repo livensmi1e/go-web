@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func RunMonitor(cfg *Config) error {
+func RunMonitor(addr string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -17,7 +17,7 @@ func RunMonitor(cfg *Config) error {
 	})
 	mux.Handle("/metrics", promhttp.Handler())
 	server := &http.Server{
-		Addr:         cfg.MonitorServerAddr(),
+		Addr:         addr,
 		Handler:      mux,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
