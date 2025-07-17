@@ -2,6 +2,8 @@ package http
 
 import (
 	"encoding/json"
+	"go-web/internal/core/models"
+	"log/slog"
 	"net/http"
 )
 
@@ -26,22 +28,43 @@ type ErrorResponseDetail struct {
 }
 
 func respondSuccess[T any](w http.ResponseWriter, code int, data T, meta *MetaData) {
+	writeJson(
+		w,
+		code,
+		SuccessResponse[T]{
+			Data: data,
+			Meta: meta,
+		})
+}
+
+func respondError(w http.ResponseWriter, err *models.AppError) {
+	if err.IsInternal {
+		slog.Error("internal error occurs", "error", err.InternalErr)
+	}
+	writeJson(
+		w,
+		err.StatusCode,
+		ErrorResponse{
+			Error: ErrorResponseDetail{
+				Type:    err.Type,
+				Message: err.Message,
+			},
+		})
+}
+
+func writeJson(w http.ResponseWriter, code int, target interface{}) {
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(code)
 	//nolint:errcheck
-	json.NewEncoder(w).Encode(SuccessResponse[T]{
-		Data: data,
-		Meta: meta,
-	})
+	json.NewEncoder(w).Encode(target)
 }
 
-// func respondError(w http.ResponseWriter, code int, err models.Error) {
-// 	w.Header().Set("Content-type", "application/json")
-// 	w.WriteHeader(code)
-// 	json.NewEncoder(w).Encode(ErrorResponse{
-// 		Error: ErrorResponseDetail{
-// 			Type:    err.HtppErr().Error(),
-// 			Message: err.AppErr().Error(),
-// 		},
-// 	})
-// }
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *statusWriter) WriteHeader(code int) {
+	w.status = code
+	w.ResponseWriter.WriteHeader(code)
+}

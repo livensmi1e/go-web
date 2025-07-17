@@ -4,6 +4,7 @@ install:
 	go mod download
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.2.2
 	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	go install github.com/swaggo/swag/cmd/swag@latest
 
 server-dev:
 	@cd ./internal/cmd/server && go run .
