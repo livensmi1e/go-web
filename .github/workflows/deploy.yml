@@ -1,0 +1,43 @@
+name: Deploy
+
+on:
+    workflow_dispatch:
+
+jobs:
+    deploy:
+        name: Deploy to VPS
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repo (for file access)
+              uses: actions/checkout@v4
+
+            - name: Copy necessary files to VPS
+              uses: appleboy/scp-action@v1
+              with:
+                  host: ${{ secrets.VPS_HOST }}
+                  username: ${{ secrets.VPS_USER }}
+                  key: ${{ secrets.VPS_PRIVATE_KEY }}
+                  port: ${{ secrets.PORT }}
+                  source: |
+                      docker-compose.prod.yml
+                      .env.prod
+                      migrations/
+                  target: "~/app"
+                  strip_components: 0
+
+            - name: Deploy using SSH
+              uses: appleboy/ssh-action@v1
+              with:
+                  host: ${{ secrets.VPS_HOST }}
+                  username: ${{ secrets.VPS_USER }}
+                  key: ${{ secrets.VPS_PRIVATE_KEY }}
+                  port: ${{ secrets.PORT }}
+                  command_timeout: 20m
+                  script: |
+                      set -e
+                      IMAGE="ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest"
+                      echo "Pulling image: $IMAGE"
+                      docker pull $IMAGE
+                      cd ~/app
+                      docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --remove-orphans
