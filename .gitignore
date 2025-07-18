@@ -29,8 +29,7 @@ go.work.sum
 .env.prod
 
 # docs
-/docs/*
-!/docs/.gitkeep
+/docs/swagger.*
 
 # Editor/IDE
 # .idea/
