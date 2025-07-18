@@ -1,11 +1,18 @@
 package main
 
 import (
+	_ "go-web/docs"
 	"go-web/internal/platform"
 	"go-web/internal/transport/http"
 	"log/slog"
 )
 
+//	@title			Go Web Service API Document
+//	@version		1.0
+//	@description	Web Service API Template using Go net/http
+
+// @host		localhost:8000
+// @BasePath	/api
 func main() {
 	cfg := platform.NewConfig()
 	logger := platform.NewLogger(cfg)

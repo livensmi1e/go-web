@@ -28,6 +28,10 @@ go.work.sum
 .env
 .env.prod
 
+# docs
+/docs/*
+!/docs/.gitkeep
+
 # Editor/IDE
 # .idea/
 # .vscode/

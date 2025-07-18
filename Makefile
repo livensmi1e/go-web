@@ -26,3 +26,6 @@ mg-reset:
 
 lint:
 	@golangci-lint run ./...
+
+docs:
+	@swag init -g internal/cmd/server/main.go
