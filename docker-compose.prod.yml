@@ -9,6 +9,11 @@ services:
             - pg-data:/var/lib/postgresql/data
         networks:
             - go-web
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${STORE_USER} -d ${STORE_DB}"]
+            interval: 50s
+            timeout: 5s
+            retries: 5
 
     cache:
         image: memcached:1.6.38-alpine
@@ -19,10 +24,30 @@ services:
         image: ghcr.io/livensmi1e/go-web:latest
         networks:
             - go-web
-        depends_on:
-            - store
         env_file:
             - .env.prod
+        depends_on:
+            store:
+                condition: service_healthy
+            migrate:
+                condition: service_completed_successfully
+
+    migrate:
+        image: migrate/migrate
+        networks:
+            - go-web
+        restart: "no"
+        command:
+            [
+                "-path=/migrations",
+                "-database=postgres://${STORE_USER}:${STORE_PASSWORD}@store:5432/${STORE_DB}",
+                "up",
+            ]
+        volumes:
+            - ./migrations:/migrations
+        depends_on:
+            store:
+                condition: service_healthy
 
 volumes:
     pg-data:

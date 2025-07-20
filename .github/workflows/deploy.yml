@@ -23,6 +23,7 @@ jobs:
                       docker-compose.prod.yml
                       .env.prod
                       migrations/
+                      scripts/
                   target: "~/app"
                   strip_components: 0
 
@@ -35,9 +36,6 @@ jobs:
                   port: ${{ secrets.PORT }}
                   command_timeout: 20m
                   script: |
-                      set -e
-                      IMAGE="ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest"
-                      echo "Pulling image: $IMAGE"
-                      docker pull $IMAGE
                       cd ~/app
-                      docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --remove-orphans
+                      chmod +x ./scripts/deploy.sh
+                      ./scripts/deploy.sh
