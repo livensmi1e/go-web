@@ -3,6 +3,7 @@ package http
 import (
 	"go-web/internal/infra/cache"
 	"go-web/internal/infra/store"
+	"go-web/internal/infra/validator"
 	"go-web/internal/platform"
 	"log/slog"
 	"net/http"
@@ -40,7 +41,6 @@ func withHandler(h http.Handler) func(*http.Server) {
 }
 
 func RunServer(cfg *platform.Config) error {
-	// TODO: refine log placement
 	mux := http.NewServeMux()
 	api := newApiHandler(func(h *ApiHandler) {
 		h.store = store.NewPgStore(cfg.StoreAddr())
@@ -51,6 +51,7 @@ func RunServer(cfg *platform.Config) error {
 			h.cache = cache.NewGobCache(cfg.CacheAddr())
 			slog.Info("connected to cache server on", "addr", cfg.CacheAddr())
 		}
+		h.validator = validator.NewValidator()
 	})
 	api.registerRoutes(mux)
 	handler := registerMiddlewares(mux, loggingMiddleware)
