@@ -6,6 +6,7 @@ import (
 	"go-web/internal/infra/cache"
 	"go-web/internal/infra/hasher"
 	"go-web/internal/infra/store"
+	"go-web/internal/infra/token"
 	"go-web/internal/infra/validator"
 	"go-web/internal/platform"
 	"log/slog"
@@ -49,6 +50,7 @@ func RunServer(cfg *platform.Config) error {
 		var s ports.Store
 		var c ports.Cache
 		var h ports.Hasher
+		var t ports.TokenGenerator
 
 		s = store.NewPgStore(cfg.StoreAddr())
 		if s != nil {
@@ -59,8 +61,9 @@ func RunServer(cfg *platform.Config) error {
 			slog.Info("connected to cache server on", "addr", cfg.CacheAddr())
 		}
 		h = hasher.NewBcryptHasher()
+		t = token.NewJwtGenorator(cfg.JwtSecret, time.Minute*5)
 
-		a.auth = service.NewAuthService(s, h)
+		a.auth = service.NewAuthService(s, h, t)
 		a.validator = validator.NewValidator()
 		a.cache = c
 	})

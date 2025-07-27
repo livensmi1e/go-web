@@ -13,6 +13,8 @@ type Config struct {
 	Debug          bool
 	MonitorEnabled bool
 	CacheEnabled   bool
+
+	JwtSecret string
 }
 
 func NewConfig() *Config {
@@ -25,6 +27,7 @@ func NewConfig() *Config {
 		Debug:          getEnvBool("DEBUG", true),
 		MonitorEnabled: getEnvBool("MONITOR_ENABLED", true),
 		CacheEnabled:   getEnvBool("CACHE_ENABLED", true),
+		JwtSecret:      getEnvStr("JWT_SECRET", "default_secret"),
 	}
 	return cfg
 }
