@@ -2,50 +2,32 @@ package http
 
 import (
 	"encoding/json"
-	"go-web/internal/core/models"
 	"log/slog"
 	"net/http"
+
+	domain "go-web/internal/core/models"
+	rest "go-web/internal/transport/http/models"
 )
 
-type SuccessResponse[T any] struct {
-	Data T         `json:"data"`
-	Meta *MetaData `json:"meta,omitempty"`
-}
-
-type MetaData struct {
-	Offset int `json:"offset"`
-	Limit  int `json:"limit"`
-	Total  int `json:"total"`
-}
-
-type ErrorResponse struct {
-	Error ErrorResponseDetail `json:"error"`
-}
-
-type ErrorResponseDetail struct {
-	Type    string `json:"type"`
-	Message string `json:"message"`
-}
-
-func respondSuccess[T any](w http.ResponseWriter, code int, data T, meta *MetaData) {
+func respondSuccess[T any](w http.ResponseWriter, code int, data T, meta *rest.MetaData) {
 	writeJson(
 		w,
 		code,
-		SuccessResponse[T]{
+		rest.SuccessResponse[T]{
 			Data: data,
 			Meta: meta,
 		})
 }
 
-func respondError(w http.ResponseWriter, err *models.AppError) {
+func respondError(w http.ResponseWriter, err *domain.AppError) {
 	if err.IsInternal {
 		slog.Error("internal error occurs", "error", err.InternalErr)
 	}
 	writeJson(
 		w,
 		err.StatusCode,
-		ErrorResponse{
-			Error: ErrorResponseDetail{
+		rest.ErrorResponse{
+			Error: rest.ErrorResponseDetail{
 				Type:    err.Type,
 				Message: err.Message,
 			},

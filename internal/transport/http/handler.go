@@ -9,6 +9,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// TODO: Refactor this
 type ApiHandler struct {
 	store     ports.Store
 	cache     ports.Cache
@@ -38,7 +39,7 @@ func (h *ApiHandler) registerRoutes(mux *http.ServeMux) {
 //	@Tags			Example
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	http.SuccessResponse[string]
+//	@Success		200	{object}	models.SuccessResponse[string]
 //	@Router			/example [get]
 func (h *ApiHandler) HelloWorld(w http.ResponseWriter, r *http.Request) {
 	respondSuccess(
@@ -56,7 +57,7 @@ func (h *ApiHandler) HelloWorld(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Example
 //	@Accept			json
 //	@Produce		json
-//	@Failure		500	{object}	http.ErrorResponse
+//	@Failure		500	{object}	models.ErrorResponse
 //	@Router			/error [get]
 func (h *ApiHandler) GiveError(w http.ResponseWriter, r *http.Request) {
 	respondError(w, UnknownError(errors.New("db connection failed")))
