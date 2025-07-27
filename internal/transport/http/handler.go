@@ -13,7 +13,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// TODO: Refactor this
 type ApiHandler struct {
 	auth      ports.AuthService
 	validator ports.Validator
@@ -32,7 +31,8 @@ func (h *ApiHandler) registerRoutes(mux *http.ServeMux) {
 	apiMux := http.NewServeMux()
 	apiMux.HandleFunc("GET /example", h.HelloWorld)
 	apiMux.HandleFunc("GET /error", h.GiveError)
-	apiMux.HandleFunc("GET /auth/login", h.Login)
+	apiMux.HandleFunc("POST /auth/register", h.Register)
+	apiMux.HandleFunc("POST /auth/login", h.Login)
 	mux.Handle("/api/", http.StripPrefix("/api", apiMux))
 	mux.Handle("/docs/", httpSwagger.WrapHandler)
 }
@@ -62,7 +62,7 @@ func (h *ApiHandler) HelloWorld(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Example
 //	@Accept			json
 //	@Produce		json
-//	@Failure		500	{object}	rest.ErrorResponse
+//	@Failure		500	{object}	models.ErrorResponse
 //	@Router			/error [get]
 func (h *ApiHandler) GiveError(w http.ResponseWriter, r *http.Request) {
 	respondError(w, domain.Internal(errors.New("db connection failed")))
@@ -75,9 +75,9 @@ func (h *ApiHandler) GiveError(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			payload	body		rest.RegisterRequest						true	"User's credentials"
-//	@Success		201		{object}	rest.SuccessResponse[rest.RegisterResponse]	"User created successfully"
-//	@Failure		500		{object}	rest.ErrorResponse							"Internal server error"
+//	@Param			payload	body		models.RegisterRequest							true	"User's credentials"
+//	@Success		201		{object}	models.SuccessResponse[models.RegisterResponse]	"User created successfully"
+//	@Failure		500		{object}	models.ErrorResponse							"Internal server error"
 //	@Router			/auth/register [post]
 func (h *ApiHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req rest.RegisterRequest
@@ -109,11 +109,11 @@ func (h *ApiHandler) Register(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			payload	body		rest.LoginRequest							true	"User's credentials for login"
-//	@Success		200		{object}	rest.SuccessResponse[rest.LoginResponse]	"Authentication successful"
-//	@Failure		400		{object}	rest.ErrorResponse							"Invalid request body"
-//	@Failure		401		{object}	rest.ErrorResponse							"Invalid credentials"
-//	@Failure		500		{object}	rest.ErrorResponse							"Internal server error"
+//	@Param			payload	body		models.LoginRequest								true	"User's credentials for login"
+//	@Success		200		{object}	models.SuccessResponse[models.LoginResponse]	"Authentication successful"
+//	@Failure		400		{object}	models.ErrorResponse							"Invalid request body"
+//	@Failure		401		{object}	models.ErrorResponse							"Invalid credentials"
+//	@Failure		500		{object}	models.ErrorResponse							"Internal server error"
 //	@Router			/auth/login [post]
 func (h *ApiHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req rest.LoginRequest

@@ -1,4 +1,4 @@
-.PHONY: install server-dev infra-dev-up infra-dev-down mg-up mg-down lint
+.PHONY: install server-dev infra-dev-up infra-dev-down mg-up mg-down lint docs
 
 install:
 	go mod download

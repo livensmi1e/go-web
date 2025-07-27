@@ -24,7 +24,7 @@ func (j *jwtGenerator) Generate(claims map[string]interface{}) (string, error) {
 	maps.Copy(jwtClaims, claims)
 	jwtClaims["exp"] = time.Now().Add(j.exp).Unix()
 	jwtClaims["iat"] = time.Now().Unix()
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwtClaims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims)
 	return token.SignedString(j.secret)
 }
 

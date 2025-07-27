@@ -19,8 +19,8 @@ func NewAuthService(store ports.Store, hasher ports.Hasher, token ports.TokenGen
 }
 
 func (a *authService) Register(ctx context.Context, email, password string) (*models.User, error) {
-	if _, err := a.store.FindByEmail(ctx, email); err == nil {
-		return nil, models.Conflict("Email already exists", nil)
+	if _, err := a.store.FindByEmail(ctx, email); err != nil {
+		return nil, models.Internal(err)
 	}
 	hashedPassword, err := a.hasher.Hash(password)
 	if err != nil {
