@@ -13,6 +13,7 @@ import (
 type ApiHandler struct {
 	auth      ports.AuthService
 	validator ports.Validator
+	cache     ports.Cache
 }
 
 func newApiHandler(opts ...func(h *ApiHandler)) *ApiHandler {

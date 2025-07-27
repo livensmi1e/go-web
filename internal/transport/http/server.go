@@ -4,6 +4,7 @@ import (
 	"go-web/internal/core/ports"
 	"go-web/internal/core/service"
 	"go-web/internal/infra/cache"
+	"go-web/internal/infra/hasher"
 	"go-web/internal/infra/store"
 	"go-web/internal/infra/validator"
 	"go-web/internal/platform"
@@ -44,9 +45,11 @@ func withHandler(h http.Handler) func(*http.Server) {
 
 func RunServer(cfg *platform.Config) error {
 	mux := http.NewServeMux()
-	api := newApiHandler(func(h *ApiHandler) {
+	api := newApiHandler(func(a *ApiHandler) {
 		var s ports.Store
 		var c ports.Cache
+		var h ports.Hasher
+
 		s = store.NewPgStore(cfg.StoreAddr())
 		if s != nil {
 			slog.Info("connected to db server on", "addr", cfg.StoreAddr())
@@ -55,8 +58,11 @@ func RunServer(cfg *platform.Config) error {
 			c = cache.NewGobCache(cfg.CacheAddr())
 			slog.Info("connected to cache server on", "addr", cfg.CacheAddr())
 		}
-		h.auth = service.NewAuthService(s, c)
-		h.validator = validator.NewValidator()
+		h = hasher.NewBcryptHasher()
+
+		a.auth = service.NewAuthService(s, h)
+		a.validator = validator.NewValidator()
+		a.cache = c
 	})
 	api.registerRoutes(mux)
 	handler := registerMiddlewares(mux, loggingMiddleware)
