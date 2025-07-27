@@ -18,7 +18,7 @@ func main() {
 	logger := platform.NewLogger(cfg)
 	slog.SetDefault(logger)
 
-	if cfg.MonitorEnable {
+	if cfg.MonitorEnabled {
 		go func() {
 			slog.Info("monitor server running...", "addr", cfg.MonitorServerAddr())
 			if err := platform.RunMonitor(cfg.MonitorServerAddr()); err != nil {

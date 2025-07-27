@@ -11,3 +11,8 @@ type TokenGenerator interface {
 	Generate(user *models.User) (string, error)
 	Parse(token string) (*models.User, error)
 }
+
+type AuthService interface {
+	Register()
+	Login()
+}

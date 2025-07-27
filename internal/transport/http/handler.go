@@ -11,8 +11,7 @@ import (
 
 // TODO: Refactor this
 type ApiHandler struct {
-	store     ports.Store
-	cache     ports.Cache
+	auth      ports.AuthService
 	validator ports.Validator
 }
 
