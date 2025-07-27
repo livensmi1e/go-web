@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -14,23 +15,29 @@ func respondSuccess[T any](w http.ResponseWriter, code int, data T, meta *rest.M
 		w,
 		code,
 		rest.SuccessResponse[T]{
-			Data: data,
-			Meta: meta,
+			Data:   data,
+			Meta:   meta,
+			Status: "success",
 		})
 }
 
-func respondError(w http.ResponseWriter, err *domain.AppError) {
-	if err.IsInternal {
-		slog.Error("internal error occurs", "error", err.InternalErr)
+func respondError(w http.ResponseWriter, err error) {
+	var appErr *domain.AppError
+	if !errors.As(err, &appErr) {
+		appErr = domain.Internal(err)
+	}
+	if appErr.IsInternal {
+		slog.Error("internal error occurs", "error", appErr.Err)
 	}
 	writeJson(
 		w,
-		err.StatusCode,
+		mapAppErrorTypeToStatusCode(appErr.Type),
 		rest.ErrorResponse{
 			Error: rest.ErrorResponseDetail{
-				Type:    err.Type,
-				Message: err.Message,
+				Type:    string(appErr.Type),
+				Message: appErr.Message,
 			},
+			Status: "error",
 		})
 }
 
@@ -49,4 +56,19 @@ type statusWriter struct {
 func (w *statusWriter) WriteHeader(code int) {
 	w.status = code
 	w.ResponseWriter.WriteHeader(code)
+}
+
+func mapAppErrorTypeToStatusCode(typ domain.ErrorType) int {
+	switch typ {
+	case domain.ErrInvalidParam, domain.ErrInvalidBody:
+		return http.StatusBadRequest
+	case domain.ErrInvalidAccess:
+		return http.StatusUnauthorized
+	case domain.ErrConflict:
+		return http.StatusConflict
+	case domain.ErrNotFound:
+		return http.StatusNotFound
+	default:
+		return http.StatusInternalServerError
+	}
 }

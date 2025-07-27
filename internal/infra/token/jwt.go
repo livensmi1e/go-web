@@ -15,7 +15,7 @@ type jwtGenerator struct {
 	exp    time.Duration
 }
 
-func NewJwtGenorator(secret string, exp time.Duration) ports.TokenGenerator {
+func NewJwtGenerator(secret string, exp time.Duration) ports.TokenGenerator {
 	return &jwtGenerator{secret: []byte(secret), exp: exp}
 }
 

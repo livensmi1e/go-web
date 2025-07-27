@@ -61,7 +61,7 @@ func RunServer(cfg *platform.Config) error {
 			slog.Info("connected to cache server on", "addr", cfg.CacheAddr())
 		}
 		h = hasher.NewBcryptHasher()
-		t = token.NewJwtGenorator(cfg.JwtSecret, time.Minute*5)
+		t = token.NewJwtGenerator(cfg.JwtSecret, time.Minute*5)
 
 		a.auth = service.NewAuthService(s, h, t)
 		a.validator = validator.NewValidator()

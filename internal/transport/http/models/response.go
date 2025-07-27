@@ -1,8 +1,9 @@
 package models
 
 type SuccessResponse[T any] struct {
-	Data T         `json:"data"`
-	Meta *MetaData `json:"meta,omitempty"`
+	Data   T         `json:"data"`
+	Status string    `json:"status"`
+	Meta   *MetaData `json:"meta,omitempty"`
 }
 
 type MetaData struct {
@@ -12,7 +13,8 @@ type MetaData struct {
 }
 
 type ErrorResponse struct {
-	Error ErrorResponseDetail `json:"error"`
+	Status string              `json:"status"`
+	Error  ErrorResponseDetail `json:"error"`
 }
 
 type ErrorResponseDetail struct {

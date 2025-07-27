@@ -1,10 +1,14 @@
 package http
 
 import (
+	"encoding/json"
 	"errors"
 	"go-web/internal/core/ports"
 	"go-web/internal/core/service"
 	"net/http"
+
+	domain "go-web/internal/core/models"
+	rest "go-web/internal/transport/http/models"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -28,6 +32,7 @@ func (h *ApiHandler) registerRoutes(mux *http.ServeMux) {
 	apiMux := http.NewServeMux()
 	apiMux.HandleFunc("GET /example", h.HelloWorld)
 	apiMux.HandleFunc("GET /error", h.GiveError)
+	apiMux.HandleFunc("GET /auth/login", h.Login)
 	mux.Handle("/api/", http.StripPrefix("/api", apiMux))
 	mux.Handle("/docs/", httpSwagger.WrapHandler)
 }
@@ -39,7 +44,7 @@ func (h *ApiHandler) registerRoutes(mux *http.ServeMux) {
 //	@Tags			Example
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	models.SuccessResponse[string]
+//	@Success		200	{object}	rest.SuccessResponse[string]
 //	@Router			/example [get]
 func (h *ApiHandler) HelloWorld(w http.ResponseWriter, r *http.Request) {
 	respondSuccess(
@@ -57,8 +62,74 @@ func (h *ApiHandler) HelloWorld(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Example
 //	@Accept			json
 //	@Produce		json
-//	@Failure		500	{object}	models.ErrorResponse
+//	@Failure		500	{object}	rest.ErrorResponse
 //	@Router			/error [get]
 func (h *ApiHandler) GiveError(w http.ResponseWriter, r *http.Request) {
-	respondError(w, UnknownError(errors.New("db connection failed")))
+	respondError(w, domain.Internal(errors.New("db connection failed")))
+}
+
+// Register godoc
+//
+//	@Summary		Register a new user
+//	@Description	Creates a new user account with the provided email and password
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		rest.RegisterRequest						true	"User's credentials"
+//	@Success		201		{object}	rest.SuccessResponse[rest.RegisterResponse]	"User created successfully"
+//	@Failure		500		{object}	rest.ErrorResponse							"Internal server error"
+//	@Router			/auth/register [post]
+func (h *ApiHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var req rest.RegisterRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, domain.InvalidBody("invalid request body", err))
+		return
+	}
+	user, err := h.auth.Register(r.Context(), req.Email, req.Password)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	res := &rest.RegisterResponse{
+		Id:    user.Id,
+		Email: user.Email,
+	}
+	respondSuccess(
+		w,
+		http.StatusCreated,
+		res,
+		nil,
+	)
+}
+
+// Login godoc
+//
+//	@Summary		Authenticate a user
+//	@Description	Logs in a user with their email and password, returning a JWT on success.
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		rest.LoginRequest							true	"User's credentials for login"
+//	@Success		200		{object}	rest.SuccessResponse[rest.LoginResponse]	"Authentication successful"
+//	@Failure		400		{object}	rest.ErrorResponse							"Invalid request body"
+//	@Failure		401		{object}	rest.ErrorResponse							"Invalid credentials"
+//	@Failure		500		{object}	rest.ErrorResponse							"Internal server error"
+//	@Router			/auth/login [post]
+func (h *ApiHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var req rest.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, domain.InvalidBody("invalid request body", err))
+		return
+	}
+	token, err := h.auth.Login(r.Context(), req.Email, req.Password)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	respondSuccess(
+		w,
+		http.StatusOK,
+		&rest.LoginResponse{Token: token, Type: "Bearer"},
+		nil,
+	)
 }
