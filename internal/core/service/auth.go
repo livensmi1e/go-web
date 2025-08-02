@@ -39,8 +39,11 @@ func (a *authService) Register(ctx context.Context, email, password string) (*mo
 
 func (a *authService) Login(ctx context.Context, email, password string) (string, error) {
 	user, err := a.store.FindByEmail(ctx, email)
-	if err != nil {
+	if user == nil {
 		return "", models.InvalidAccess("Email or password is incorrect", err)
+	}
+	if err != nil {
+		return "", models.Internal(err)
 	}
 	if err := a.hasher.Compare(user.PasswordHash, password); err != nil {
 		return "", models.InvalidAccess("Email or password is incorrect", err)
@@ -50,4 +53,8 @@ func (a *authService) Login(ctx context.Context, email, password string) (string
 		"email": user.Email,
 	}
 	return a.token.Generate(claims)
+}
+
+func (a *authService) Validate(token string) (map[string]interface{}, error) {
+	return a.token.Validate(token)
 }

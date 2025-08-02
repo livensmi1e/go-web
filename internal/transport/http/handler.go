@@ -13,31 +13,32 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-type ApiHandler struct {
+type apiHandler struct {
 	auth      ports.AuthService
 	validator ports.Validator
 	cache     ports.Cache
 }
 
-func newApiHandler(opts ...func(h *ApiHandler)) *ApiHandler {
-	h := &ApiHandler{}
+func newApiHandler(opts ...func(h *apiHandler)) *apiHandler {
+	h := &apiHandler{}
 	for _, o := range opts {
 		o(h)
 	}
 	return h
 }
 
-func (h *ApiHandler) registerRoutes(mux *http.ServeMux) {
+func (h *apiHandler) registerRoutes(mux *http.ServeMux) {
 	apiMux := http.NewServeMux()
-	apiMux.HandleFunc("GET /example", h.HelloWorld)
-	apiMux.HandleFunc("GET /error", h.GiveError)
-	apiMux.HandleFunc("POST /auth/register", h.Register)
-	apiMux.HandleFunc("POST /auth/login", h.Login)
+	apiMux.HandleFunc("GET /example", h.helloWorld)
+	apiMux.HandleFunc("GET /error", h.giveError)
+	apiMux.HandleFunc("POST /auth/register", h.register)
+	apiMux.HandleFunc("POST /auth/login", h.login)
+	apiMux.Handle("GET /me", h.authorize(http.HandlerFunc(h.me)))
 	mux.Handle("/api/", http.StripPrefix("/api", apiMux))
 	mux.Handle("/docs/", httpSwagger.WrapHandler)
 }
 
-// HelloWorld godoc
+// helloWorld godoc
 //
 //	@Summary		Example Hello API
 //	@Description	Returns a greeting message from the service
@@ -46,7 +47,7 @@ func (h *ApiHandler) registerRoutes(mux *http.ServeMux) {
 //	@Produce		json
 //	@Success		200	{object}	rest.SuccessResponse[string]
 //	@Router			/example [get]
-func (h *ApiHandler) HelloWorld(w http.ResponseWriter, r *http.Request) {
+func (h *apiHandler) helloWorld(w http.ResponseWriter, r *http.Request) {
 	respondSuccess(
 		w,
 		http.StatusOK,
@@ -55,7 +56,7 @@ func (h *ApiHandler) HelloWorld(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-// GiveError godoc
+// giveError godoc
 //
 //	@Summary		Example Error API
 //	@Description	Simulates an internal error response
@@ -64,11 +65,11 @@ func (h *ApiHandler) HelloWorld(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Failure		500	{object}	models.ErrorResponse
 //	@Router			/error [get]
-func (h *ApiHandler) GiveError(w http.ResponseWriter, r *http.Request) {
+func (h *apiHandler) giveError(w http.ResponseWriter, r *http.Request) {
 	respondError(w, domain.Internal(errors.New("db connection failed")))
 }
 
-// Register godoc
+// register godoc
 //
 //	@Summary		Register a new user
 //	@Description	Creates a new user account with the provided email and password
@@ -79,7 +80,7 @@ func (h *ApiHandler) GiveError(w http.ResponseWriter, r *http.Request) {
 //	@Success		201		{object}	models.SuccessResponse[models.RegisterResponse]	"User created successfully"
 //	@Failure		500		{object}	models.ErrorResponse							"Internal server error"
 //	@Router			/auth/register [post]
-func (h *ApiHandler) Register(w http.ResponseWriter, r *http.Request) {
+func (h *apiHandler) register(w http.ResponseWriter, r *http.Request) {
 	var req rest.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, domain.InvalidBody("invalid request body", err))
@@ -102,7 +103,7 @@ func (h *ApiHandler) Register(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-// Login godoc
+// login godoc
 //
 //	@Summary		Authenticate a user
 //	@Description	Logs in a user with their email and password, returning a JWT on success.
@@ -115,7 +116,7 @@ func (h *ApiHandler) Register(w http.ResponseWriter, r *http.Request) {
 //	@Failure		401		{object}	models.ErrorResponse							"Invalid credentials"
 //	@Failure		500		{object}	models.ErrorResponse							"Internal server error"
 //	@Router			/auth/login [post]
-func (h *ApiHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *apiHandler) login(w http.ResponseWriter, r *http.Request) {
 	var req rest.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, domain.InvalidBody("invalid request body", err))
@@ -130,6 +131,15 @@ func (h *ApiHandler) Login(w http.ResponseWriter, r *http.Request) {
 		w,
 		http.StatusOK,
 		&rest.LoginResponse{Token: token, Type: "Bearer"},
+		nil,
+	)
+}
+
+func (h *apiHandler) me(w http.ResponseWriter, r *http.Request) {
+	respondSuccess(
+		w,
+		http.StatusOK,
+		"Me",
 		nil,
 	)
 }

@@ -1,8 +1,12 @@
 package http
 
 import (
+	"context"
+	"go-web/internal/core/models"
+	"go-web/internal/platform"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -28,5 +32,28 @@ func loggingMiddleware(next http.Handler) http.Handler {
 			"remote", r.RemoteAddr,
 			"duration_ms", duration,
 		)
+	})
+}
+
+func (h *apiHandler) authorize(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		header := r.Header.Get("Authorization")
+		if !strings.HasPrefix(header, "Bearer ") {
+			respondError(w, models.InvalidAccess("invalid or expired token", nil))
+			return
+		}
+		tokenStr := strings.TrimPrefix(header, "Bearer ")
+		claims, err := h.auth.Validate(tokenStr)
+		if err != nil {
+			respondError(w, models.InvalidAccess("invalid or expired token", err))
+			return
+		}
+		userId, ok := claims["sub"].(string)
+		if !ok || userId == "" {
+			respondError(w, models.InvalidAccess("invalid token payload", nil))
+			return
+		}
+		ctx := context.WithValue(r.Context(), platform.CtxUserIdKey, userId)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

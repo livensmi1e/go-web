@@ -46,7 +46,7 @@ func withHandler(h http.Handler) func(*http.Server) {
 
 func RunServer(cfg *platform.Config) error {
 	mux := http.NewServeMux()
-	api := newApiHandler(func(a *ApiHandler) {
+	api := newApiHandler(func(a *apiHandler) {
 		var s ports.Store
 		var c ports.Cache
 		var h ports.Hasher
