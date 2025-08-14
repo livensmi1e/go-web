@@ -10,15 +10,8 @@ import (
 	rest "go-web/internal/transport/http/models"
 )
 
-func respondSuccess[T any](w http.ResponseWriter, code int, data T, meta *rest.MetaData) {
-	writeJson(
-		w,
-		code,
-		rest.SuccessResponse[T]{
-			Data:   data,
-			Meta:   meta,
-			Status: "success",
-		})
+func respondSuccess(w http.ResponseWriter, code int, resp any) {
+	writeJson(w, code, resp)
 }
 
 func respondError(w http.ResponseWriter, err error) {
@@ -29,16 +22,16 @@ func respondError(w http.ResponseWriter, err error) {
 	if appErr.IsInternal {
 		slog.Error("internal error occurs", "error", appErr.Err)
 	}
+	code := mapAppErrorTypeToStatusCode(appErr.Type)
 	writeJson(
 		w,
-		mapAppErrorTypeToStatusCode(appErr.Type),
-		rest.ErrorResponse{
-			Error: rest.ErrorResponseDetail{
-				Type:    string(appErr.Type),
-				Message: appErr.Message,
-			},
-			Status: "error",
-		})
+		code,
+		&rest.ErrorResponseBody{
+			StatusCode:   code,
+			ErrorCode:    string(appErr.Type),
+			ErrorMessage: appErr.Message,
+		},
+	)
 }
 
 func writeJson(w http.ResponseWriter, code int, target interface{}) {

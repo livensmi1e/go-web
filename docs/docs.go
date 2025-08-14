@@ -15,6 +15,98 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Logs in a user with their email and password, returning a JWT on success.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Authenticate a user",
+                "parameters": [
+                    {
+                        "description": "User's credentials for login",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.LoginRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Authentication successful",
+                        "schema": {
+                            "$ref": "#/definitions/models.LoginResponseBody"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponseBody"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponseBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Creates a new user account with the provided email and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User's credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RegisterRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.RegisterResponseBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponseBody"
+                        }
+                    }
+                }
+            }
+        },
         "/error": {
             "get": {
                 "description": "Simulates an internal error response",
@@ -32,7 +124,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponseBody"
                         }
                     }
                 }
@@ -55,7 +147,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.SuccessResponse-string"
+                            "$ref": "#/definitions/models.ExampleResponseBody"
                         }
                     }
                 }
@@ -63,18 +155,46 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "http.ErrorResponse": {
+        "models.ErrorResponseBody": {
             "type": "object",
             "properties": {
-                "error": {
-                    "$ref": "#/definitions/http.ErrorResponseDetail"
+                "error_code": {
+                    "type": "string"
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "status_code": {
+                    "type": "integer"
                 }
             }
         },
-        "http.ErrorResponseDetail": {
+        "models.ExampleResponseBody": {
             "type": "object",
             "properties": {
-                "message": {
+                "data": {
+                    "type": "string"
+                },
+                "status_code": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.LoginRequestBody": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
                     "type": "string"
                 },
                 "type": {
@@ -82,28 +202,47 @@ const docTemplate = `{
                 }
             }
         },
-        "http.MetaData": {
+        "models.LoginResponseBody": {
             "type": "object",
             "properties": {
-                "limit": {
-                    "type": "integer"
+                "data": {
+                    "$ref": "#/definitions/models.LoginResponse"
                 },
-                "offset": {
-                    "type": "integer"
-                },
-                "total": {
+                "status_code": {
                     "type": "integer"
                 }
             }
         },
-        "http.SuccessResponse-string": {
+        "models.RegisterRequestBody": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RegisterResponseBody": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.RegisterResponse"
                 },
-                "meta": {
-                    "$ref": "#/definitions/http.MetaData"
+                "status_code": {
+                    "type": "integer"
                 }
             }
         }

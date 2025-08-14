@@ -45,14 +45,13 @@ func (h *apiHandler) registerRoutes(mux *http.ServeMux) {
 //	@Tags			Example
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	rest.SuccessResponse[string]
+//	@Success		200	{object}	models.ExampleResponseBody
 //	@Router			/example [get]
 func (h *apiHandler) helloWorld(w http.ResponseWriter, r *http.Request) {
 	respondSuccess(
 		w,
 		http.StatusOK,
-		service.HelloWord(),
-		nil,
+		&rest.ExampleResponseBody{Data: service.HelloWord(), StatusCode: http.StatusOK},
 	)
 }
 
@@ -63,7 +62,7 @@ func (h *apiHandler) helloWorld(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Example
 //	@Accept			json
 //	@Produce		json
-//	@Failure		500	{object}	models.ErrorResponse
+//	@Failure		500	{object}	models.ErrorResponseBody
 //	@Router			/error [get]
 func (h *apiHandler) giveError(w http.ResponseWriter, r *http.Request) {
 	respondError(w, domain.Internal(errors.New("db connection failed")))
@@ -76,12 +75,12 @@ func (h *apiHandler) giveError(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			payload	body		models.RegisterRequest							true	"User's credentials"
-//	@Success		201		{object}	models.SuccessResponse[models.RegisterResponse]	"User created successfully"
-//	@Failure		500		{object}	models.ErrorResponse							"Internal server error"
+//	@Param			payload	body		models.RegisterRequestBody	true	"User's credentials"
+//	@Success		201		{object}	models.RegisterResponseBody	"User created successfully"
+//	@Failure		500		{object}	models.ErrorResponseBody	"Internal server error"
 //	@Router			/auth/register [post]
 func (h *apiHandler) register(w http.ResponseWriter, r *http.Request) {
-	var req rest.RegisterRequest
+	var req rest.RegisterRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, domain.InvalidBody("invalid request body", err))
 		return
@@ -91,15 +90,18 @@ func (h *apiHandler) register(w http.ResponseWriter, r *http.Request) {
 		respondError(w, err)
 		return
 	}
-	res := &rest.RegisterResponse{
+	data := &rest.RegisterResponse{
 		Id:    user.Id,
 		Email: user.Email,
+	}
+	resp := &rest.RegisterResponseBody{
+		Data:       data,
+		StatusCode: http.StatusCreated,
 	}
 	respondSuccess(
 		w,
 		http.StatusCreated,
-		res,
-		nil,
+		resp,
 	)
 }
 
@@ -110,14 +112,14 @@ func (h *apiHandler) register(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			payload	body		models.LoginRequest								true	"User's credentials for login"
-//	@Success		200		{object}	models.SuccessResponse[models.LoginResponse]	"Authentication successful"
-//	@Failure		400		{object}	models.ErrorResponse							"Invalid request body"
-//	@Failure		401		{object}	models.ErrorResponse							"Invalid credentials"
-//	@Failure		500		{object}	models.ErrorResponse							"Internal server error"
+//	@Param			payload	body		models.LoginRequestBody		true	"User's credentials for login"
+//	@Success		200		{object}	models.LoginResponseBody	"Authentication successful"
+//	@Failure		400		{object}	models.ErrorResponseBody	"Invalid request body"
+//	@Failure		401		{object}	models.ErrorResponseBody	"Invalid credentials"
+//	@Failure		500		{object}	models.ErrorResponseBody	"Internal server error"
 //	@Router			/auth/login [post]
 func (h *apiHandler) login(w http.ResponseWriter, r *http.Request) {
-	var req rest.LoginRequest
+	var req rest.LoginRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, domain.InvalidBody("invalid request body", err))
 		return
@@ -127,11 +129,15 @@ func (h *apiHandler) login(w http.ResponseWriter, r *http.Request) {
 		respondError(w, err)
 		return
 	}
+	data := &rest.LoginResponse{Token: token, Type: "Bearer"}
+	resp := &rest.LoginResponseBody{
+		Data:       data,
+		StatusCode: http.StatusOK,
+	}
 	respondSuccess(
 		w,
 		http.StatusOK,
-		&rest.LoginResponse{Token: token, Type: "Bearer"},
-		nil,
+		resp,
 	)
 }
 
@@ -139,7 +145,6 @@ func (h *apiHandler) me(w http.ResponseWriter, r *http.Request) {
 	respondSuccess(
 		w,
 		http.StatusOK,
-		"Me",
-		nil,
+		&rest.GetMeResponseBody{Data: "me", StatusCode: http.StatusOK},
 	)
 }
