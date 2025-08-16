@@ -6,12 +6,8 @@
 
 ### Development
 
-Reference `Makefile` for more details.
-
 ```
-make install
-make infra-dev-up
-make server-dev
+make help
 ```
 
 ### Deployment
