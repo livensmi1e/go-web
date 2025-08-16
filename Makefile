@@ -5,6 +5,8 @@ install: ## Install dependencies and required tools
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.2.2
 	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 	go install github.com/swaggo/swag/cmd/swag@latest
+	go install golang.org/x/tools/cmd/gofumpt@latest
+	go install golang.org/x/vuln/cmd/govulncheck@latest
 
 server-dev: ## Run server in development mode
 	@cd ./internal/cmd/server && go run .
