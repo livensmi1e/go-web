@@ -2,12 +2,13 @@ package http
 
 import (
 	"context"
-	"go-web/internal/core/models"
-	"go-web/internal/platform"
 	"log/slog"
 	"net/http"
 	"strings"
 	"time"
+
+	"go-web/internal/core/models"
+	"go-web/internal/platform"
 )
 
 func registerMiddlewares(r *http.ServeMux, middlewares ...func(next http.Handler) http.Handler) http.Handler {

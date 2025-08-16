@@ -3,6 +3,7 @@ package cache
 import (
 	"bytes"
 	"encoding/gob"
+
 	"go-web/internal/core/ports"
 
 	"github.com/bradfitz/gomemcache/memcache"

@@ -1,4 +1,4 @@
-.PHONY: install server-dev infra-dev-up infra-dev-down mg-up mg-down lint docs
+.PHONY: install server-dev infra-dev-up infra-dev-down mg-up mg-down lint format docs
 
 install:
 	go mod download
@@ -26,6 +26,9 @@ mg-reset:
 
 lint:
 	@golangci-lint run ./...
+
+format:
+	@gofumpt -w .
 
 docs:
 	@swag init -g internal/cmd/server/main.go

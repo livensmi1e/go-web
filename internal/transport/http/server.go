@@ -1,6 +1,10 @@
 package http
 
 import (
+	"log/slog"
+	"net/http"
+	"time"
+
 	"go-web/internal/core/ports"
 	"go-web/internal/core/service"
 	"go-web/internal/infra/cache"
@@ -9,9 +13,6 @@ import (
 	"go-web/internal/infra/token"
 	"go-web/internal/infra/validator"
 	"go-web/internal/platform"
-	"log/slog"
-	"net/http"
-	"time"
 
 	"github.com/rs/cors"
 )

@@ -2,8 +2,9 @@ package store
 
 import (
 	"database/sql"
-	"go-web/internal/core/ports"
 	"log/slog"
+
+	"go-web/internal/core/ports"
 
 	_ "github.com/lib/pq"
 )

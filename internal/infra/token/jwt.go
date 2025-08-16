@@ -3,9 +3,10 @@ package token
 import (
 	"errors"
 	"fmt"
-	"go-web/internal/core/ports"
 	"maps"
 	"time"
+
+	"go-web/internal/core/ports"
 
 	"github.com/golang-jwt/jwt/v5"
 )

@@ -3,9 +3,10 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+
 	"go-web/internal/core/ports"
 	"go-web/internal/core/service"
-	"net/http"
 
 	domain "go-web/internal/core/models"
 	rest "go-web/internal/transport/http/models"
