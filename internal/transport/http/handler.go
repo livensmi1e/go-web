@@ -18,6 +18,7 @@ type apiHandler struct {
 	auth      ports.AuthService
 	validator ports.Validator
 	cache     ports.Cache
+	limiter   ports.RateLimiter
 }
 
 func newApiHandler(opts ...func(h *apiHandler)) *apiHandler {

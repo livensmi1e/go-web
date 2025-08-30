@@ -36,6 +36,26 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (h *apiHandler) rateLimitMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if h.limiter == nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+		ip := strings.Split(r.RemoteAddr, ":")[0]
+		allowed, err := h.limiter.Allow(r.Context(), ip)
+		if err != nil {
+			respondError(w, models.Internal(err))
+			return
+		}
+		if !allowed {
+			respondError(w, models.TooManyRequests("rate limit exceeded", nil))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (h *apiHandler) authorize(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		header := r.Header.Get("Authorization")

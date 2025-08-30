@@ -8,6 +8,7 @@ const (
 	ErrInvalidAccess ErrorType = "INVALID_ACCESS"
 	ErrConflict      ErrorType = "CONFLICT"
 	ErrNotFound      ErrorType = "NOT_FOUND"
+	ErrTooManyReq    ErrorType = "TOO_MANY_REQUESTS"
 	ErrUnknown       ErrorType = "UNKNOWN"
 )
 
@@ -57,6 +58,10 @@ func Conflict(msg string, err error) *AppError {
 
 func NotFound(msg string, err error) *AppError {
 	return newAppError(ErrNotFound, msg, err, false)
+}
+
+func TooManyRequests(msg string, err error) *AppError {
+	return newAppError(ErrTooManyReq, msg, err, false)
 }
 
 func Internal(err error) *AppError {

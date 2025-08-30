@@ -9,6 +9,7 @@ import (
 	"go-web/internal/core/service"
 	"go-web/internal/infra/cache"
 	"go-web/internal/infra/hasher"
+	"go-web/internal/infra/limiter"
 	"go-web/internal/infra/store"
 	"go-web/internal/infra/token"
 	"go-web/internal/infra/validator"
@@ -52,6 +53,7 @@ func RunServer(cfg *platform.Config) error {
 		var c ports.Cache
 		var h ports.Hasher
 		var t ports.TokenGenerator
+		var l ports.RateLimiter
 
 		s = store.NewPgStore(cfg.StoreAddr())
 		if s != nil {
@@ -63,13 +65,15 @@ func RunServer(cfg *platform.Config) error {
 		}
 		h = hasher.NewBcryptHasher()
 		t = token.NewJwtGenerator(cfg.JwtSecret, time.Minute*5)
+		l = limiter.NewMemLimiter(10, 30)
 
 		a.auth = service.NewAuthService(s, h, t)
 		a.validator = validator.NewValidator()
 		a.cache = c
+		a.limiter = l
 	})
 	api.registerRoutes(mux)
-	handler := registerMiddlewares(mux, loggingMiddleware)
+	handler := registerMiddlewares(mux, loggingMiddleware, api.rateLimitMiddleware)
 	server := newServer(
 		withAddr(cfg.HttpServerAddr()),
 		withHandler(cors.Default().Handler(handler)),
