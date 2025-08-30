@@ -1,4 +1,4 @@
-.PHONY: install server-dev infra-dev-up infra-dev-down mg-up mg-down mg-reset lint format vuln-check docs help
+.PHONY: install server-dev infra-dev-up infra-dev-down mg-up mg-down mg-reset lint format vuln-check docs test help
 
 install: ## Install dependencies and required tools
 	go mod download
@@ -37,6 +37,9 @@ vuln-check: ## Run govulncheck to check for vulnerabilities
 
 docs: ## Generate Swagger API docs
 	@swag init -g internal/cmd/server/main.go
+
+test: ## Run all unit and integration tests
+	@go test ./... | grep -v "\[no test files\]"
 
 help: ## Show available make commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
