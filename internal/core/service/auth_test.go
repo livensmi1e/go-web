@@ -2,10 +2,11 @@ package service_test
 
 import (
 	"context"
+	"testing"
+
 	"go-web/internal/core/models"
 	"go-web/internal/core/service"
 	"go-web/tests/mocks"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

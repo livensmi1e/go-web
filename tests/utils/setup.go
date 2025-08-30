@@ -3,6 +3,11 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
 	"go-web/internal/core/service"
 	"go-web/internal/infra/cache"
 	"go-web/internal/infra/hasher"
@@ -11,10 +16,6 @@ import (
 	"go-web/internal/infra/token"
 	"go-web/internal/infra/validator"
 	httpTransport "go-web/internal/transport/http"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -58,6 +59,7 @@ func (ts *TestServer) DoRequest(t *testing.T, method, path string, body any, tok
 	}
 	res, err := ts.Client.Do(req)
 	require.NoError(t, err)
+	//nolint:errcheck
 	defer res.Body.Close()
 	require.Equal(t, wantStatus, res.StatusCode)
 	if respTarget != nil {

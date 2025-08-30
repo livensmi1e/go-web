@@ -2,8 +2,9 @@ package limiter
 
 import (
 	"context"
-	"go-web/internal/core/ports"
 	"sync"
+
+	"go-web/internal/core/ports"
 
 	"golang.org/x/time/rate"
 )

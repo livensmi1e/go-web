@@ -1,8 +1,9 @@
 package http_test
 
 import (
-	"go-web/tests/utils"
 	"testing"
+
+	"go-web/tests/utils"
 
 	"github.com/stretchr/testify/require"
 )
