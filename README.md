@@ -2,7 +2,7 @@
 
 > [!NOTE]
 >
-> **Purpose**: Use it whenever I want to start backend for something quickly — an idea, or a side project — without spending [much] time about structure.
+> **Purpose**: Use it whenever I want to start backend for something quickly — an idea, or a side project — without spending [much] time for internal structure.
 
 ### Development
 
