@@ -21,6 +21,16 @@ type apiHandler struct {
 	limiter   ports.RateLimiter
 }
 
+// This constructor is for test purpose only
+func NewApiHandler(auth ports.AuthService, validator ports.Validator, cache ports.Cache, limiter ports.RateLimiter) *apiHandler {
+	return &apiHandler{
+		auth:      auth,
+		validator: validator,
+		cache:     cache,
+		limiter:   limiter,
+	}
+}
+
 func newApiHandler(opts ...func(h *apiHandler)) *apiHandler {
 	h := &apiHandler{}
 	for _, o := range opts {
@@ -29,7 +39,7 @@ func newApiHandler(opts ...func(h *apiHandler)) *apiHandler {
 	return h
 }
 
-func (h *apiHandler) registerRoutes(mux *http.ServeMux) {
+func (h *apiHandler) RegisterRoutes(mux *http.ServeMux) {
 	apiMux := http.NewServeMux()
 	apiMux.HandleFunc("GET /example", h.helloWorld)
 	apiMux.HandleFunc("GET /error", h.giveError)

@@ -11,7 +11,7 @@ import (
 	"go-web/internal/platform"
 )
 
-func registerMiddlewares(r *http.ServeMux, middlewares ...func(next http.Handler) http.Handler) http.Handler {
+func RegisterMiddlewares(r *http.ServeMux, middlewares ...func(next http.Handler) http.Handler) http.Handler {
 	var s http.Handler
 	s = r
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -20,7 +20,7 @@ func registerMiddlewares(r *http.ServeMux, middlewares ...func(next http.Handler
 	return s
 }
 
-func loggingMiddleware(next http.Handler) http.Handler {
+func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
 		start := time.Now()
@@ -36,7 +36,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (h *apiHandler) rateLimitMiddleware(next http.Handler) http.Handler {
+func (h *apiHandler) RateLimitMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if h.limiter == nil {
 			next.ServeHTTP(w, r)

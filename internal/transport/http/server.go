@@ -72,8 +72,8 @@ func RunServer(cfg *platform.Config) error {
 		a.cache = c
 		a.limiter = l
 	})
-	api.registerRoutes(mux)
-	handler := registerMiddlewares(mux, loggingMiddleware, api.rateLimitMiddleware)
+	api.RegisterRoutes(mux)
+	handler := RegisterMiddlewares(mux, LoggingMiddleware, api.RateLimitMiddleware)
 	server := newServer(
 		withAddr(cfg.HttpServerAddr()),
 		withHandler(cors.Default().Handler(handler)),
