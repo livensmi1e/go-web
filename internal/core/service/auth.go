@@ -25,7 +25,7 @@ func (a *authService) Register(ctx context.Context, email, password string) (*mo
 		return nil, models.Internal(err)
 	}
 	if userDb != nil {
-		return nil, models.Conflict("email already in use", nil)
+		return nil, models.Conflict("Email already in use", nil)
 	}
 	hashedPassword, err := a.hasher.Hash(password)
 	if err != nil {

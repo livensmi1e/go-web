@@ -49,7 +49,7 @@ func (h *apiHandler) RateLimitMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		if !allowed {
-			respondError(w, models.TooManyRequests("rate limit exceeded", nil))
+			respondError(w, models.TooManyRequests("Too many requests", nil))
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -60,18 +60,18 @@ func (h *apiHandler) authorize(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		header := r.Header.Get("Authorization")
 		if !strings.HasPrefix(header, "Bearer ") {
-			respondError(w, models.InvalidAccess("invalid or expired token", nil))
+			respondError(w, models.InvalidAccess("Invalid or expired token", nil))
 			return
 		}
 		tokenStr := strings.TrimPrefix(header, "Bearer ")
 		claims, err := h.auth.Validate(tokenStr)
 		if err != nil {
-			respondError(w, models.InvalidAccess("invalid or expired token", err))
+			respondError(w, models.InvalidAccess("Invalid or expired token", err))
 			return
 		}
 		userId, ok := claims["sub"].(string)
 		if !ok || userId == "" {
-			respondError(w, models.InvalidAccess("invalid token payload", nil))
+			respondError(w, models.InvalidAccess("Invalid token payload", nil))
 			return
 		}
 		ctx := context.WithValue(r.Context(), platform.CtxUserIdKey, userId)
