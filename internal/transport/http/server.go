@@ -60,7 +60,7 @@ func RunServer(cfg *platform.Config) error {
 			slog.Info("connected to db server on", "addr", cfg.StoreAddr())
 		}
 		if cfg.CacheEnabled {
-			c = cache.NewGobCache(cfg.CacheAddr())
+			c = cache.NewMemCache(cfg.CacheAddr())
 			slog.Info("connected to cache server on", "addr", cfg.CacheAddr())
 		}
 		h = hasher.NewBcryptHasher()

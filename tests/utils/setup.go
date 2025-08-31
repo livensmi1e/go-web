@@ -27,7 +27,7 @@ type TestServer struct {
 
 func SetupTestServer() *TestServer {
 	s := store.NewPgStore("postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable")
-	c := cache.NewGobCache("localhost:11211")
+	c := cache.NewMemCache("localhost:11211")
 	h := hasher.NewBcryptHasher()
 	t := token.NewJwtGenerator("test_secret", time.Minute*5)
 	l := limiter.NewMemLimiter(10, 30)

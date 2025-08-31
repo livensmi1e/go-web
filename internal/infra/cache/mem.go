@@ -9,15 +9,15 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 )
 
-type gobCache struct {
+type memCache struct {
 	client *memcache.Client
 }
 
-func NewGobCache(addr string) ports.Cache {
-	return &gobCache{memcache.New(addr)}
+func NewMemCache(addr string) ports.Cache {
+	return &memCache{memcache.New(addr)}
 }
 
-func (c *gobCache) Set(key string, value interface{}) error {
+func (c *memCache) Set(key string, value interface{}) error {
 	if c == nil {
 		return nil
 	}
@@ -28,7 +28,7 @@ func (c *gobCache) Set(key string, value interface{}) error {
 	return c.client.Set(&memcache.Item{Key: key, Value: buf.Bytes()})
 }
 
-func (c *gobCache) Get(key string, value interface{}) error {
+func (c *memCache) Get(key string, value interface{}) error {
 	if c == nil {
 		return memcache.ErrCacheMiss
 	}
@@ -37,4 +37,15 @@ func (c *gobCache) Get(key string, value interface{}) error {
 		return err
 	}
 	return gob.NewDecoder(bytes.NewBuffer(item.Value)).Decode(value)
+}
+
+func (c *memCache) SetWithTTL(key string, value interface{}, ttl int) error {
+	if c == nil {
+		return nil
+	}
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(value); err != nil {
+		return err
+	}
+	return c.client.Set(&memcache.Item{Key: key, Value: buf.Bytes(), Expiration: int32(ttl)})
 }
