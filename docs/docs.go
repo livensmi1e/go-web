@@ -164,7 +164,7 @@ const docTemplate = `{
                 "error_message": {
                     "type": "string"
                 },
-                "status_code": {
+                "statusCode": {
                     "type": "integer"
                 }
             }
@@ -175,7 +175,7 @@ const docTemplate = `{
                 "data": {
                     "type": "string"
                 },
-                "status_code": {
+                "statusCode": {
                     "type": "integer"
                 }
             }
@@ -208,7 +208,7 @@ const docTemplate = `{
                 "data": {
                     "$ref": "#/definitions/models.LoginResponse"
                 },
-                "status_code": {
+                "statusCode": {
                     "type": "integer"
                 }
             }
@@ -241,7 +241,7 @@ const docTemplate = `{
                 "data": {
                     "$ref": "#/definitions/models.RegisterResponse"
                 },
-                "status_code": {
+                "statusCode": {
                     "type": "integer"
                 }
             }

@@ -12,7 +12,7 @@ type LoginResponse struct {
 
 type LoginResponseBody struct {
 	Data       *LoginResponse `json:"data"`
-	StatusCode int            `json:"status_code"`
+	StatusCode int            `json:"statusCode"`
 }
 
 type RegisterRequestBody struct {
@@ -27,10 +27,10 @@ type RegisterResponse struct {
 
 type RegisterResponseBody struct {
 	Data       *RegisterResponse `json:"data"`
-	StatusCode int               `json:"status_code"`
+	StatusCode int               `json:"statusCode"`
 }
 
 type GetMeResponseBody struct {
 	Data       string `json:"data"`
-	StatusCode int    `json:"status_code"`
+	StatusCode int    `json:"statusCode"`
 }
