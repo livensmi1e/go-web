@@ -2,6 +2,7 @@ package http_test
 
 import (
 	"testing"
+	"time"
 
 	"go-web/tests/utils"
 
@@ -14,7 +15,7 @@ func TestAuthFlow(t *testing.T) {
 
 	email := utils.GenUserEmail()
 	password := "password123"
-	t.Run("should register a new user successfully", func(t *testing.T) {
+	t.Run("register a new user successfully", func(t *testing.T) {
 		registerBody := map[string]string{
 			"email":    email,
 			"password": password,
@@ -27,7 +28,7 @@ func TestAuthFlow(t *testing.T) {
 	})
 
 	var token string
-	t.Run("should login sucessfully", func(t *testing.T) {
+	t.Run("login sucessfully", func(t *testing.T) {
 		loginBody := map[string]string{
 			"email":    email,
 			"password": password,
@@ -38,11 +39,64 @@ func TestAuthFlow(t *testing.T) {
 		require.NotEmpty(t, token)
 	})
 
-	t.Run("should return get me when have token", func(t *testing.T) {
+	t.Run("return get me when have token", func(t *testing.T) {
 		var meResp map[string]any
 		ts.DoRequest(t, "GET", "/api/me", nil, token, &meResp, 200)
 		require.Equal(t, "me", meResp["data"])
 	})
 
-	// Need some tests for other cases like invalid input, wrong password, no token, invalid token, rate limit, etc.
+	t.Run("register with invalid email", func(t *testing.T) {
+		registerBody := map[string]string{
+			"email":    "not-an-email",
+			"password": password,
+		}
+		var resp map[string]any
+		ts.DoRequest(t, "POST", "/api/auth/register", registerBody, "", &resp, 400)
+	})
+
+	t.Run("register with duplicate email", func(t *testing.T) {
+		registerBody := map[string]string{
+			"email":    email,
+			"password": password,
+		}
+		var resp map[string]any
+		ts.DoRequest(t, "POST", "/api/auth/register", registerBody, "", &resp, 409)
+	})
+
+	t.Run("login with wrong password", func(t *testing.T) {
+		loginBody := map[string]string{
+			"email":    email,
+			"password": "wrongpassword",
+		}
+		var resp map[string]any
+		ts.DoRequest(t, "POST", "/api/auth/login", loginBody, "", &resp, 401)
+	})
+
+	t.Run("login with non-existent email", func(t *testing.T) {
+		loginBody := map[string]string{
+			"email":    "unknown@example.com",
+			"password": password,
+		}
+		var resp map[string]any
+		ts.DoRequest(t, "POST", "/api/auth/login", loginBody, "", &resp, 401)
+	})
+
+	t.Run("get me without token", func(t *testing.T) {
+		var resp map[string]any
+		ts.DoRequest(t, "GET", "/api/me", nil, "", &resp, 401)
+	})
+
+	t.Run("get me with invalid token", func(t *testing.T) {
+		var resp map[string]any
+		ts.DoRequest(t, "GET", "/api/me", nil, "fake.token.here", &resp, 401)
+	})
+
+	t.Run("rate limit exceeded", func(t *testing.T) {
+		time.Sleep(3 * time.Second) // wait for previous tests to not affect this one
+		for i := 0; i < 30; i++ {
+			ts.DoRequest(t, "GET", "/api/me", nil, token, nil, 200)
+		}
+		var resp map[string]any
+		ts.DoRequest(t, "GET", "/api/me", nil, token, &resp, 429)
+	})
 }

@@ -97,6 +97,9 @@ func (h *apiHandler) register(w http.ResponseWriter, r *http.Request) {
 		respondError(w, domain.InvalidBody("Invalid request body", err))
 		return
 	}
+	if err := h.validator.Validate(req); err != nil {
+		respondError(w, domain.InvalidBody("Invalid request body", err))
+	}
 	user, err := h.auth.Register(r.Context(), req.Email, req.Password)
 	if err != nil {
 		respondError(w, err)
@@ -135,6 +138,9 @@ func (h *apiHandler) login(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, domain.InvalidBody("Invalid request body", err))
 		return
+	}
+	if err := h.validator.Validate(req); err != nil {
+		respondError(w, domain.InvalidBody("Invalid request body", err))
 	}
 	token, err := h.auth.Login(r.Context(), req.Email, req.Password)
 	if err != nil {

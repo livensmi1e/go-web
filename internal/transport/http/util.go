@@ -61,6 +61,8 @@ func mapAppErrorTypeToStatusCode(typ domain.ErrorType) int {
 		return http.StatusConflict
 	case domain.ErrNotFound:
 		return http.StatusNotFound
+	case domain.ErrTooManyReq:
+		return http.StatusTooManyRequests
 	default:
 		return http.StatusInternalServerError
 	}
