@@ -16,5 +16,11 @@ services:
         ports:
             - 11211:11211
 
+    # cache:
+    #     image: redis:8.2.1-alpine
+    #     ports:
+    #         - 6379:6379
+    #     command: ["redis-server", "--requirepass", "redis"]
+
 volumes:
     pg-data:

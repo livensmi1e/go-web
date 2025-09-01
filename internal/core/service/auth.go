@@ -2,21 +2,24 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"go-web/internal/core/models"
 	"go-web/internal/core/ports"
+	"go-web/internal/shared"
 
 	"github.com/google/uuid"
 )
 
 type authService struct {
 	store  ports.Store
+	cache  ports.Cache
 	hasher ports.Hasher
 	token  ports.TokenGenerator
 }
 
-func NewAuthService(store ports.Store, hasher ports.Hasher, token ports.TokenGenerator) ports.AuthService {
-	return &authService{store, hasher, token}
+func NewAuthService(store ports.Store, cache ports.Cache, hasher ports.Hasher, token ports.TokenGenerator) ports.AuthService {
+	return &authService{store, cache, hasher, token}
 }
 
 func (a *authService) Register(ctx context.Context, email, password string) (*models.User, error) {
@@ -42,22 +45,80 @@ func (a *authService) Register(ctx context.Context, email, password string) (*mo
 	return user, nil
 }
 
-func (a *authService) Login(ctx context.Context, email, password string) (string, error) {
+func (a *authService) Login(ctx context.Context, email, password string) (*models.AuthTokens, error) {
 	user, err := a.store.FindByEmail(ctx, email)
 	if user == nil {
-		return "", models.InvalidAccess("Email or password is incorrect", err)
+		return nil, models.InvalidAccess("Email or password is incorrect", err)
 	}
 	if err != nil {
-		return "", models.Internal(err)
+		return nil, models.Internal(err)
 	}
 	if err := a.hasher.Compare(user.PasswordHash, password); err != nil {
-		return "", models.InvalidAccess("Email or password is incorrect", err)
+		return nil, models.InvalidAccess("Email or password is incorrect", err)
 	}
 	claims := map[string]interface{}{
 		"sub":   user.Id,
 		"email": user.Email,
+		"iat":   time.Now().Unix(),
+		"exp":   time.Now().Add(time.Minute * 15).Unix(),
+		"jti":   shared.RandString(8),
 	}
-	return a.token.Generate(claims)
+	accessToken, err := a.token.Generate(claims)
+	if err != nil {
+		return nil, models.Internal(err)
+	}
+	refreshToken := shared.RandString(16)
+	refreshUser := models.RefreshUser{
+		Id:    user.Id,
+		Email: user.Email,
+	}
+	err = a.cache.SetWithTTL(refreshToken, refreshUser, 60*60*24*7) // 7 days
+	if err != nil {
+		return nil, models.Internal(err)
+	}
+	return &models.AuthTokens{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (a *authService) Refresh(ctx context.Context, refreshToken string) (*models.AuthTokens, error) {
+	var refreshUser models.RefreshUser
+	err := a.cache.Get(refreshToken, &refreshUser)
+	if err != nil {
+		return nil, models.InvalidAccess("Invalid refresh token", err)
+	}
+	if refreshUser.Id == "" {
+		return nil, models.InvalidAccess("Invalid refresh token", nil)
+	}
+	newClaims := map[string]any{
+		"sub":   refreshUser.Id,
+		"email": refreshUser.Email,
+		"iat":   time.Now().Unix(),
+		"exp":   time.Now().Add(time.Minute * 15).Unix(),
+		"jti":   shared.RandString(8),
+	}
+	newAccessToken, err := a.token.Generate(newClaims)
+	if err != nil {
+		return nil, models.Internal(err)
+	}
+	newRefreshToken := shared.RandString(16)
+	err = a.cache.SetWithTTL(newRefreshToken, refreshUser, 60*60*24*7) // 7 days
+	if err != nil {
+		return nil, models.Internal(err)
+	}
+	err = a.cache.Delete(refreshToken)
+	if err != nil {
+		return nil, models.Internal(err)
+	}
+	return &models.AuthTokens{
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
+	}, nil
+}
+
+func (a *authService) Logout(ctx context.Context, refreshToken string) error {
+	return a.cache.Delete(refreshToken)
 }
 
 func (a *authService) Validate(token string) (map[string]interface{}, error) {

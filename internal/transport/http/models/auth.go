@@ -34,3 +34,13 @@ type GetMeResponseBody struct {
 	Data       string `json:"data"`
 	StatusCode int    `json:"statusCode"`
 }
+
+type RefreshTokenResponseBody struct {
+	Data       *LoginResponse `json:"data"`
+	StatusCode int            `json:"statusCode"`
+}
+
+type LogoutResponseBody struct {
+	Data       *string `json:"data"`
+	StatusCode int     `json:"statusCode"`
+}

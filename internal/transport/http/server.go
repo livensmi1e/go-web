@@ -67,10 +67,11 @@ func RunServer(cfg *platform.Config) error {
 		t = token.NewJwtGenerator(cfg.JwtSecret, time.Minute*5)
 		l = limiter.NewMemLimiter(10, 30)
 
-		a.auth = service.NewAuthService(s, h, t)
+		a.auth = service.NewAuthService(s, c, h, t)
 		a.validator = validator.NewValidator()
 		a.cache = c
 		a.limiter = l
+		a.env = cfg.Env
 	})
 	api.RegisterRoutes(mux)
 	handler := RegisterMiddlewares(mux, LoggingMiddleware, api.RateLimitMiddleware)

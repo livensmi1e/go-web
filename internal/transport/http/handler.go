@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"go-web/internal/core/ports"
 	"go-web/internal/core/service"
+	"go-web/internal/shared"
 
 	domain "go-web/internal/core/models"
 	rest "go-web/internal/transport/http/models"
@@ -19,6 +21,8 @@ type apiHandler struct {
 	validator ports.Validator
 	cache     ports.Cache
 	limiter   ports.RateLimiter
+
+	env string
 }
 
 // This constructor is for test purpose only
@@ -45,6 +49,8 @@ func (h *apiHandler) RegisterRoutes(mux *http.ServeMux) {
 	apiMux.HandleFunc("GET /error", h.giveError)
 	apiMux.HandleFunc("POST /auth/register", h.register)
 	apiMux.HandleFunc("POST /auth/login", h.login)
+	apiMux.Handle("POST /auth/refresh", http.HandlerFunc(h.refresh))
+	apiMux.Handle("POST /auth/logout", h.authorize(http.HandlerFunc(h.logout)))
 	apiMux.Handle("GET /me", h.authorize(http.HandlerFunc(h.me)))
 	mux.Handle("/api/", http.StripPrefix("/api", apiMux))
 	mux.Handle("/docs/", httpSwagger.WrapHandler)
@@ -142,20 +148,109 @@ func (h *apiHandler) login(w http.ResponseWriter, r *http.Request) {
 	if err := h.validator.Validate(req); err != nil {
 		respondError(w, domain.InvalidBody("Invalid request body", err))
 	}
-	token, err := h.auth.Login(r.Context(), req.Email, req.Password)
+	tokens, err := h.auth.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
 		respondError(w, err)
 		return
 	}
-	data := &rest.LoginResponse{Token: token, Type: "Bearer"}
+	data := &rest.LoginResponse{Token: tokens.AccessToken, Type: "Bearer"}
 	resp := &rest.LoginResponseBody{
 		Data:       data,
 		StatusCode: http.StatusOK,
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refreshToken",
+		Value:    tokens.RefreshToken,
+		Path:     "/auth/refresh",
+		Secure:   !shared.IsDevelopmentEnv(h.env),
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
+	})
 	respondSuccess(
 		w,
 		http.StatusOK,
 		resp,
+	)
+}
+
+// refresh godoc
+//
+//	@Summary		Refresh JWT tokens
+//	@Description	Refreshes the JWT tokens using a valid refresh token
+//	@Tags			Auth
+//	@Produce		json
+//	@Success		200	{object}	models.RefreshTokenResponseBody	"Token refreshed successfully"
+//	@Failure		400	{object}	models.ErrorResponseBody			"Invalid request"
+//	@Failure		401	{object}	models.ErrorResponseBody			"Invalid or expired refresh token"
+//	@Failure		500	{object}	models.ErrorResponseBody			"Internal server error"
+//	@Router			/auth/refresh [post]
+func (h *apiHandler) refresh(w http.ResponseWriter, r *http.Request) {
+	refreshToken, err := r.Cookie("refreshToken")
+	if refreshToken == nil || err != nil {
+		respondError(w, domain.InvalidAccess("refresh token is required", nil))
+		return
+	}
+	tokens, err := h.auth.Refresh(r.Context(), refreshToken.Value)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	data := &rest.LoginResponse{Token: tokens.AccessToken, Type: "Bearer"}
+	resp := &rest.RefreshTokenResponseBody{
+		Data:       data,
+		StatusCode: http.StatusOK,
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refreshToken",
+		Value:    tokens.RefreshToken,
+		Path:     "/auth/refresh",
+		Secure:   !shared.IsDevelopmentEnv(h.env),
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
+	})
+	respondSuccess(
+		w,
+		http.StatusOK,
+		resp,
+	)
+}
+
+// logout godoc
+//
+//	@Summary		Logout a user
+//	@Description	Logs out a user by invalidating their refresh token
+//	@Tags			Auth
+//	@Produce		json
+//	@Param			payload	body		models.LogoutRequestBody	true	"Refresh token to invalidate"
+//	@Success		200		{object}	models.LogoutResponseBody	"Logout successful"
+//	@Failure		400		{object}	models.ErrorResponseBody	"Invalid request body"
+//	@Failure		500		{object}	models.ErrorResponseBody	"Internal server error"
+//	@Router			/auth/logout [post]
+func (h *apiHandler) logout(w http.ResponseWriter, r *http.Request) {
+	refreshToken, err := r.Cookie("refreshToken")
+	if refreshToken == nil || err != nil {
+		respondError(w, domain.InvalidAccess("refresh token is required", nil))
+		return
+	}
+	if err := h.auth.Logout(r.Context(), refreshToken.Value); err != nil {
+		respondError(w, err)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refreshToken",
+		Value:    "",
+		Path:     "/auth/refresh",
+		HttpOnly: true,
+		Secure:   !shared.IsDevelopmentEnv(h.env),
+		SameSite: http.SameSiteNoneMode,
+		MaxAge:   -1,
+	})
+	respondSuccess(
+		w,
+		http.StatusOK,
+		&rest.LogoutResponseBody{Data: nil, StatusCode: http.StatusOK},
 	)
 }
 

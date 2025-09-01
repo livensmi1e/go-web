@@ -32,7 +32,7 @@ func SetupTestServer() *TestServer {
 	t := token.NewJwtGenerator("test_secret", time.Minute*5)
 	l := limiter.NewMemLimiter(10, 30)
 	v := validator.NewValidator()
-	auth := service.NewAuthService(s, h, t)
+	auth := service.NewAuthService(s, c, h, t)
 	api := httpTransport.NewApiHandler(auth, v, c, l)
 	mux := http.NewServeMux()
 	api.RegisterRoutes(mux)
@@ -44,7 +44,7 @@ func SetupTestServer() *TestServer {
 	}
 }
 
-func (ts *TestServer) DoRequest(t *testing.T, method, path string, body any, token string, respTarget any, wantStatus int) {
+func (ts *TestServer) DoRequest(t *testing.T, method, path string, body any, token string, respTarget any, wantStatus int, cookies ...*http.Cookie) *http.Response {
 	var buf []byte
 	var err error
 	if body != nil {
@@ -57,6 +57,9 @@ func (ts *TestServer) DoRequest(t *testing.T, method, path string, body any, tok
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
+	for _, c := range cookies {
+		req.AddCookie(c)
+	}
 	res, err := ts.Client.Do(req)
 	require.NoError(t, err)
 	//nolint:errcheck
@@ -66,6 +69,7 @@ func (ts *TestServer) DoRequest(t *testing.T, method, path string, body any, tok
 		err = json.NewDecoder(res.Body).Decode(respTarget)
 		require.NoError(t, err)
 	}
+	return res
 }
 
 func GenUserEmail() string {

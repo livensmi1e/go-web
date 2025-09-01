@@ -74,7 +74,7 @@ func (h *apiHandler) authorize(next http.Handler) http.Handler {
 			respondError(w, models.InvalidAccess("Invalid token payload", nil))
 			return
 		}
-		ctx := context.WithValue(r.Context(), platform.CtxUserIdKey, userId)
+		ctx := context.WithValue(r.Context(), platform.CtxUserKey, claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

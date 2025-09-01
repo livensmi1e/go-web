@@ -28,21 +28,70 @@ func TestAuthFlow(t *testing.T) {
 	})
 
 	var token string
-	t.Run("login sucessfully", func(t *testing.T) {
+	t.Run("login successfully sets refresh token cookie", func(t *testing.T) {
 		loginBody := map[string]string{
 			"email":    email,
 			"password": password,
 		}
 		var loginResp map[string]any
-		ts.DoRequest(t, "POST", "/api/auth/login", loginBody, "", &loginResp, 200)
+		res := ts.DoRequest(t, "POST", "/api/auth/login", loginBody, "", &loginResp, 200)
 		token = loginResp["data"].(map[string]any)["token"].(string)
 		require.NotEmpty(t, token)
+		var hasRefresh bool
+		for _, c := range res.Cookies() {
+			if c.Name == "refreshToken" {
+				hasRefresh = true
+				require.NotEmpty(t, c.Value)
+			}
+		}
+		require.True(t, hasRefresh, "refreshToken cookie must be set")
 	})
 
 	t.Run("return get me when have token", func(t *testing.T) {
 		var meResp map[string]any
 		ts.DoRequest(t, "GET", "/api/me", nil, token, &meResp, 200)
 		require.Equal(t, "me", meResp["data"])
+	})
+
+	t.Run("refresh returns new access token", func(t *testing.T) {
+		loginBody := map[string]string{
+			"email":    email,
+			"password": password,
+		}
+		var loginResp map[string]any
+		res := ts.DoRequest(t, "POST", "/api/auth/login", loginBody, "", &loginResp, 200)
+		var refreshResp map[string]any
+		res = ts.DoRequest(t, "POST", "/api/auth/refresh", nil, "", &refreshResp, 200, res.Cookies()...)
+		newToken := refreshResp["data"].(map[string]any)["token"].(string)
+		require.NotEmpty(t, newToken)
+		require.NotEqual(t, token, newToken)
+		var hasNewRefresh bool
+		for _, c := range res.Cookies() {
+			if c.Name == "refreshToken" {
+				hasNewRefresh = true
+				require.NotEmpty(t, c.Value)
+			}
+		}
+		require.True(t, hasNewRefresh, "refreshToken cookie must be rotated")
+	})
+
+	t.Run("logout clears refresh token", func(t *testing.T) {
+		loginBody := map[string]string{
+			"email":    email,
+			"password": password,
+		}
+		var loginResp map[string]any
+		res := ts.DoRequest(t, "POST", "/api/auth/login", loginBody, "", &loginResp, 200)
+		token := loginResp["data"].(map[string]any)["token"].(string)
+		var logoutResp map[string]any
+		res = ts.DoRequest(t, "POST", "/api/auth/logout", nil, token, &logoutResp, 200, res.Cookies()...)
+		var cleared bool
+		for _, c := range res.Cookies() {
+			if c.Name == "refreshToken" && c.Value == "" && c.MaxAge == -1 {
+				cleared = true
+			}
+		}
+		require.True(t, cleared, "refreshToken cookie must be cleared on logout")
 	})
 
 	t.Run("register with invalid email", func(t *testing.T) {
