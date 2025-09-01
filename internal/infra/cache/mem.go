@@ -49,3 +49,10 @@ func (c *memCache) SetWithTTL(key string, value interface{}, ttl int) error {
 	}
 	return c.client.Set(&memcache.Item{Key: key, Value: buf.Bytes(), Expiration: int32(ttl)})
 }
+
+func (c *memCache) Delete(key string) error {
+	if c == nil {
+		return nil
+	}
+	return c.client.Delete(key)
+}

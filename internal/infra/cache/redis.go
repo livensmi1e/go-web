@@ -60,3 +60,10 @@ func (c *redisCache) SetWithTTL(key string, value interface{}, ttl int) error {
 	}
 	return c.client.Set(c.ctx, key, buf.Bytes(), time.Duration(ttl)*time.Second).Err()
 }
+
+func (c *redisCache) Delete(key string) error {
+	if c == nil {
+		return nil
+	}
+	return c.client.Del(c.ctx, key).Err()
+}
