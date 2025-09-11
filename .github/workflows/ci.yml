@@ -24,6 +24,9 @@ jobs:
             - name: Install dependencies
               run: go mod download
 
+            - name: Test Build
+              run: go build -v ./internal/cmd/server
+
             - name: Run unit tests
               run: go test ./internal/... -v -cover
 
