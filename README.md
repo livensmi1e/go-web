@@ -14,7 +14,7 @@ make help
 
 Make `.env.prod` with variables similar to `.env.dev`.
 
-### Performance (need to improve alot)
+### Performance (need improvement!)
 
 ```bash
 .\hey.exe -n 10000 -c 50 -m POST -H "Content-Type: application/json" -d '{\"email\":\"user@email.com\",\"password\":\"password\"}' http://localhost:8000/api/auth/login
@@ -63,7 +63,7 @@ Status code distribution:
   [200] 10000 responses
 ```
 
-### Improvement
+### Improvement todo
 
 -   Utilize concurrency
 -   Apply cache mechanism for req/resp
@@ -75,3 +75,4 @@ Status code distribution:
 -   https://github.com/evrone/go-clean-template/tree/master
 -   https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
 -   https://golang.cafe/blog/golang-functional-options-pattern.html
+-   https://tillitsdone.com/blogs/high-performance-go-web-servers
