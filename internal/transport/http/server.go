@@ -74,7 +74,7 @@ func RunServer(cfg *platform.Config) error {
 		a.env = cfg.Env
 	})
 	api.RegisterRoutes(mux)
-	handler := RegisterMiddlewares(mux, LoggingMiddleware, api.RateLimitMiddleware)
+	handler := RegisterMiddlewares(mux, api.RateLimitMiddleware, HttpMetricMiddleware, LoggingMiddleware)
 	server := newServer(
 		withAddr(cfg.HttpServerAddr()),
 		withHandler(cors.Default().Handler(handler)),

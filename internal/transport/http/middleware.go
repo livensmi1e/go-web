@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -76,5 +77,14 @@ func (h *apiHandler) authorize(next http.Handler) http.Handler {
 		}
 		ctx := context.WithValue(r.Context(), platform.CtxUserKey, claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func HttpMetricMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(sw, r)
+		st := strconv.Itoa(sw.status)
+		httpRequest.WithLabelValues(r.Method, st).Inc()
 	})
 }
