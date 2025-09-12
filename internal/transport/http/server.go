@@ -65,7 +65,7 @@ func RunServer(cfg *platform.Config) error {
 		}
 		h = hasher.NewBcryptHasher()
 		t = token.NewJwtGenerator(cfg.JwtSecret, time.Minute*5)
-		l = limiter.NewMemLimiter(10, 30)
+		l = limiter.NewMemLimiter(1000, 3000)
 
 		a.auth = service.NewAuthService(s, c, h, t)
 		a.validator = validator.NewValidator()
