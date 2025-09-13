@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"time"
@@ -17,6 +18,8 @@ import (
 
 	"github.com/rs/cors"
 )
+
+var server *http.Server
 
 func newServer(opts ...func(*http.Server)) *http.Server {
 	s := &http.Server{}
@@ -65,7 +68,7 @@ func RunServer(cfg *platform.Config) error {
 		}
 		h = hasher.NewBcryptHasher()
 		t = token.NewJwtGenerator(cfg.JwtSecret, time.Minute*5)
-		l = limiter.NewMemLimiter(1000, 3000)
+		l = limiter.NewMemLimiter(100000, 300000)
 
 		a.auth = service.NewAuthService(s, c, h, t)
 		a.validator = validator.NewValidator()
@@ -74,11 +77,20 @@ func RunServer(cfg *platform.Config) error {
 		a.env = cfg.Env
 	})
 	api.RegisterRoutes(mux)
-	handler := RegisterMiddlewares(mux, api.RateLimitMiddleware, HttpMetricMiddleware, LoggingMiddleware)
-	server := newServer(
+	handler := RegisterMiddlewares(mux, api.RateLimitMiddleware, HttpMetricMiddleware)
+	server = newServer(
 		withAddr(cfg.HttpServerAddr()),
 		withHandler(cors.Default().Handler(handler)),
 		withTimeouts(5*time.Second, 10*time.Second, 2*time.Second),
 	)
 	return server.ListenAndServe()
+}
+
+func StopServer() error {
+	if server == nil {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return server.Shutdown(ctx)
 }

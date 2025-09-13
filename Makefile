@@ -9,7 +9,7 @@ install: ## Install dependencies and required tools
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 
 server-dev: ## Run server in development mode
-	@cd ./internal/cmd/server && go run .
+	@cd ./cmd/server && go run .
 
 infra-dev-up: ## Start development infrastructure with Docker Compose
 	@docker compose --env-file .env.dev -f docker-compose.dev.yml up -d
@@ -36,7 +36,7 @@ vuln-check: ## Run govulncheck to check for vulnerabilities
 	@govulncheck ./...
 
 docs: ## Generate Swagger API docs
-	@swag init -g internal/cmd/server/main.go
+	@swag init -g cmd/server/main.go
 
 unit-test: ## Run only unit tests
 	@go test ./internal/... | grep -v "\[no test files\]"

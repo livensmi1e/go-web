@@ -1,12 +1,15 @@
 package platform
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+var server *http.Server
 
 func RunMonitor(addr string) error {
 	mux := http.NewServeMux()
@@ -16,7 +19,7 @@ func RunMonitor(addr string) error {
 		fmt.Fprintln(w, "OK")
 	})
 	mux.Handle("/metrics", promhttp.Handler())
-	server := &http.Server{
+	server = &http.Server{
 		Addr:         addr,
 		Handler:      mux,
 		ReadTimeout:  5 * time.Second,
@@ -24,4 +27,13 @@ func RunMonitor(addr string) error {
 		IdleTimeout:  120 * time.Second,
 	}
 	return server.ListenAndServe()
+}
+
+func StopMonitor() error {
+	if server == nil {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return server.Shutdown(ctx)
 }

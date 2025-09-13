@@ -14,7 +14,9 @@ type memCache struct {
 }
 
 func NewMemCache(addr string) ports.Cache {
-	return &memCache{memcache.New(addr)}
+	mc := &memCache{memcache.New(addr)}
+	mc.client.MaxIdleConns = 1000
+	return mc
 }
 
 func (c *memCache) Set(key string, value interface{}) error {

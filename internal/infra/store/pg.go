@@ -23,6 +23,8 @@ func NewPgStore(addr string) ports.Store {
 		slog.Error("failed to ping db", "error=", err.Error())
 		return nil
 	}
+	db.SetMaxOpenConns(100)
+	db.SetMaxIdleConns(50)
 	slog.Info("db connected")
 	return &pgStore{db: db}
 }
