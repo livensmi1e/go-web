@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /app/bin /app/internal/cmd/server/main.go
+RUN go build -o /app/bin /app/cmd/server/main.go
 
 FROM alpine:latest AS server
 
