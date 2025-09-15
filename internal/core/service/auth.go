@@ -46,6 +46,7 @@ func (a *authService) Register(ctx context.Context, email, password string) (*mo
 }
 
 func (a *authService) Login(ctx context.Context, email, password string) (*models.AuthTokens, error) {
+	// Todo(cache): implement cache email
 	user, err := a.store.FindByEmail(ctx, email)
 	if user == nil {
 		return nil, models.InvalidAccess("Email or password is incorrect", err)
